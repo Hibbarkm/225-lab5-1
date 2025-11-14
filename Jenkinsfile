@@ -2,11 +2,12 @@ pipeline {
     agent any 
 
     environment {
-        DOCKER_CREDENTIALS_ID = 'roseaw-dockerhub'  
-        DOCKER_IMAGE = 'cithit/hibbarkm'       //<----- change this to your MiamiID!
+        DOCKER_CREDENTIALS_ID = 'roseaw-dockerhub'
+        DOCKER_IMAGE = 'cithit/hibbarkm'       // <----- change to your MiamiID
         IMAGE_TAG = "build-${BUILD_NUMBER}"
-        GITHUB_URL = 'https://github.com/Hibbarkm/225-lab5-1.git'  //<----- change this to match your repo
-        KUBECONFIG = credentials('hibbarkm-225')   //<----- change this to your k8s credentials
+        GITHUB_URL = 'https://github.com/Hibbarkm/225-lab5-1.git'  // <----- repo URL
+        KUBECONFIG = credentials('hibbarkm-225')   // <----- k8s credentials
+        BASE_URL = "http://flask-dev-service:5000" // For Selenium tests in k8s
     }
 
     stages {
@@ -66,11 +67,10 @@ pipeline {
                         script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'",
                         returnStdout: true
                     ).trim()
-
                     sh """
                     kubectl exec ${appPod} -- python3 - <<'PY'
 import sqlite3
-DB_PATH = '/nfs/demo.db'  # <-- updated path to match Lab 4-2
+DB_PATH = '/nfs/demo.db'
 conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
 cur.execute('DELETE FROM parts')
@@ -85,8 +85,10 @@ PY
         stage('Generate Test Data') {
             steps {
                 script {
-                    def appPod = sh(script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
-                    sh "sleep 15"
+                    def appPod = sh(
+                        script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'",
+                        returnStdout: true
+                    ).trim()
                     sh "kubectl exec ${appPod} -- python3 data-gen.py"
                 }
             }
@@ -95,50 +97,4 @@ PY
         stage("Run Acceptance Tests") {
             steps {
                 script {
-                    sh 'docker stop qa-tests || true'
-                    sh 'docker rm qa-tests || true'
-                    sh 'docker build -t qa-tests -f Dockerfile.test .'
-                    sh 'docker run qa-tests'
-                }
-            }
-        }
-        
-        stage('Remove Test Data') {
-            steps {
-                script {
-                    def appPod = sh(script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
-                    sh "kubectl exec ${appPod} -- python3 data-clear.py"
-                }
-            }
-        }
-
-        stage('Deploy to Prod Environment') {
-            steps {
-                script {
-                    sh "sed -i 's|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-prod.yaml"
-                    sh "kubectl apply -f deployment-prod.yaml"
-                }
-            }
-        }
-
-        stage('Check Kubernetes Cluster') {
-            steps {
-                script {
-                    sh "kubectl get all"
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            slackSend color: "good", message: "Build Completed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
-        }
-        unstable {
-            slackSend color: "warning", message: "Build Completed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
-        }
-        failure {
-            slackSend color: "danger", message: "Build Completed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
-        }
-    }
-}
+                    sh 'docker stop qa-
