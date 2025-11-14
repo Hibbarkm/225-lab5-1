@@ -97,4 +97,53 @@ PY
         stage("Run Acceptance Tests") {
             steps {
                 script {
-                    sh 'docker stop qa-
+                    sh 'docker stop qa-tests || true'
+                    sh 'docker rm qa-tests || true'
+                    sh 'docker build -t qa-tests -f Dockerfile.test .'
+                    sh "docker run -e BASE_URL=${BASE_URL} qa-tests"
+                }
+            }
+        }
+        
+        stage('Remove Test Data') {
+            steps {
+                script {
+                    def appPod = sh(
+                        script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'",
+                        returnStdout: true
+                    ).trim()
+                    sh "kubectl exec ${appPod} -- python3 data-clear.py"
+                }
+            }
+        }
+
+        stage('Deploy to Prod Environment') {
+            steps {
+                script {
+                    sh "sed -i 's|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-prod.yaml"
+                    sh "kubectl apply -f deployment-prod.yaml"
+                }
+            }
+        }
+
+        stage('Check Kubernetes Cluster') {
+            steps {
+                script {
+                    sh "kubectl get all"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            slackSend color: "good", message: "Build Completed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+        }
+        unstable {
+            slackSend color: "warning", message: "Build Completed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+        }
+        failure {
+            slackSend color: "danger", message: "Build Completed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+        }
+    }
+}
