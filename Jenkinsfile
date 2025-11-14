@@ -5,7 +5,7 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'roseaw-dockerhub'  
         DOCKER_IMAGE = 'cithit/hibbarkm'                                   //<-----change this to your MiamiID!
         IMAGE_TAG = "build-${BUILD_NUMBER}"
-        GITHUB_URL = 'https://github.com/Hibbarkm/225-lab5-1.git'     //<-----change this to match this new repository!
+        GITHUB_URL = 'https://github.com/Hibbarkm/225-lab5-1.git'          //<-----change this to match this repository!
         KUBECONFIG = credentials('hibbarkm-225')                           //<-----change this to match your kubernetes credentials (MiamiID-225)! 
     }
 
@@ -26,20 +26,19 @@ pipeline {
         }
         
         stage('Build & Push Docker Image') {
-          steps {
-            script {
-              docker.withRegistry('https://registry.hub.docker.com', "${DOCKER_CREDENTIALS_ID}") {
-                def app = docker.build("${DOCKER_IMAGE}:${IMAGE_TAG}", "-f Dockerfile.build .")
-                app.push()
-              }
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', "${DOCKER_CREDENTIALS_ID}") {
+                        def app = docker.build("${DOCKER_IMAGE}:${IMAGE_TAG}", "-f Dockerfile.build .")
+                        app.push()
+                    }
+                }
             }
-          }
         }
 
         stage('Deploy to Dev Environment') {
             steps {
                 script {
-                    def kubeConfig = readFile(KUBECONFIG)
                     sh "kubectl delete --all deployments --namespace=default"
                     sh "sed -i 's|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-dev.yaml"
                     sh "kubectl apply -f deployment-dev.yaml"
@@ -61,33 +60,33 @@ pipeline {
         }
         
         stage('Reset DB After Security Checks') {
-          steps {
-            script {
-              def appPod = sh(
-                script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'",
-                returnStdout: true
-              ).trim()
-        
-              sh """
-                kubectl exec ${appPod} -- python3 - <<'PY'
+            steps {
+                script {
+                    def appPod = sh(
+                        script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'",
+                        returnStdout: true
+                    ).trim()
+
+                    sh """
+                    kubectl exec ${appPod} -- python3 - <<'PY'
 import sqlite3
-conn = sqlite3.connect('data/warehouse.db')
+DB_PATH = '/data/warehouse.db'  # <-- match the DB path inside the container
+conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
 cur.execute('DELETE FROM parts')
 conn.commit()
 conn.close()
 PY
-                """
+                    """
+                }
             }
-          }
-        } 
-   
+        }
+
         stage('Generate Test Data') {
             steps {
                 script {
                     def appPod = sh(script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
                     sh "sleep 15"
-                    sh "kubectl get pods"
                     sh "kubectl exec ${appPod} -- python3 data-gen.py"
                 }
             }
@@ -120,7 +119,7 @@ PY
                     sh "kubectl apply -f deployment-prod.yaml"
                 }
             }
-        }     
+        }
 
         stage('Check Kubernetes Cluster') {
             steps {
