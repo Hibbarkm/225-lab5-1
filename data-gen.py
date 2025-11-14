@@ -1,8 +1,3 @@
-"""
-Populate data/warehouse.db with a handful of sample motorcycle parts.
-Run with: python data-gen.py
-"""
-
 import sqlite3
 import os
 
@@ -29,7 +24,6 @@ CREATE TABLE IF NOT EXISTS parts (
 )
 """)
 
-# Clear existing sample rows (but keep DB intact)
 c.executemany("INSERT INTO parts (part_name, quantity, location) VALUES (?, ?, ?)", sample_parts)
 conn.commit()
 conn.close()
