@@ -3,10 +3,10 @@ pipeline {
 
     environment {
         DOCKER_CREDENTIALS_ID = 'roseaw-dockerhub'  
-        DOCKER_IMAGE = 'cithit/hibbarkm'                                   //<-----change this to your MiamiID!
+        DOCKER_IMAGE = 'cithit/hibbarkm'       //<----- change this to your MiamiID!
         IMAGE_TAG = "build-${BUILD_NUMBER}"
-        GITHUB_URL = 'https://github.com/Hibbarkm/225-lab5-1.git'          //<-----change this to match this repository!
-        KUBECONFIG = credentials('hibbarkm-225')                           //<-----change this to match your kubernetes credentials (MiamiID-225)! 
+        GITHUB_URL = 'https://github.com/Hibbarkm/225-lab5-1.git'  //<----- change this to match your repo
+        KUBECONFIG = credentials('hibbarkm-225')   //<----- change this to your k8s credentials
     }
 
     stages {
@@ -39,7 +39,7 @@ pipeline {
         stage('Deploy to Dev Environment') {
             steps {
                 script {
-                    sh "kubectl delete --all deployments --namespace=default"
+                    sh "kubectl delete --all deployments --namespace=default || true"
                     sh "sed -i 's|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-dev.yaml"
                     sh "kubectl apply -f deployment-dev.yaml"
                 }
@@ -70,7 +70,7 @@ pipeline {
                     sh """
                     kubectl exec ${appPod} -- python3 - <<'PY'
 import sqlite3
-DB_PATH = '/data/warehouse.db'  # <-- match the DB path inside the container
+DB_PATH = '/nfs/demo.db'  # <-- updated path to match Lab 4-2
 conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
 cur.execute('DELETE FROM parts')
