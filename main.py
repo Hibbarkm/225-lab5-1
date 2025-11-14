@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET", "replace-this-in-prod")
 
-DB_PATH = 'data/warehouse.db'  # KEEP THIS PATH (do not change)
+DB_PATH = 'data/warehouse.db'  # Keep this path
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -73,7 +73,6 @@ def add_part():
         flash(f"Added part '{part_name}'.", "success")
         return redirect(url_for('index'))
 
-    # GET
     return render_template('add.html')
 
 @app.route('/delete/<int:part_id>', methods=['POST'])
@@ -90,5 +89,4 @@ def delete_part(part_id):
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    # For local development only. In deployments your WSGI server will call the app.
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=os.environ.get('FLASK_DEBUG', '0') == '1')
