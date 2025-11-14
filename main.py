@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, flash
 import sqlite3
 
 app = Flask(__name__)
+app.secret_key = "supersecret"  # Needed for flash messages
 
-# Use persistent NFS path to match Jenkins reset commands
+# Persistent NFS database path
 DB_PATH = '/nfs/demo.db'
 
 def get_db():
@@ -14,29 +15,35 @@ def get_db():
 def index():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM parts")  # assuming you're now tracking parts
+    cur.execute("SELECT * FROM parts")
     items = cur.fetchall()
     conn.close()
     return render_template('index.html', items=items)
 
 @app.route('/add', methods=['POST'])
 def add_part():
-    name = request.form['name']
-    quantity = request.form['quantity']
+    part_name = request.form['part_name']
+    quantity = request.form.get('quantity', 0)
+    location = request.form.get('location', '')
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("INSERT INTO parts (name, quantity) VALUES (?, ?)", (name, quantity))
+    cur.execute(
+        "INSERT INTO parts (part_name, quantity, location) VALUES (?, ?, ?)",
+        (part_name, quantity, location)
+    )
     conn.commit()
     conn.close()
+    flash(f"Added part '{part_name}'", "success")
     return redirect('/')
 
-@app.route('/delete/<int:id>')
-def delete_part(id):
+@app.route('/delete/<int:part_id>', methods=['POST', 'GET'])
+def delete_part(part_id):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("DELETE FROM parts WHERE id=?", (id,))
+    cur.execute("DELETE FROM parts WHERE part_id=?", (part_id,))
     conn.commit()
     conn.close()
+    flash(f"Deleted part ID {part_id}", "success")
     return redirect('/')
 
 if __name__ == '__main__':
