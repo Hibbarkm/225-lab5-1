@@ -1,107 +1,94 @@
-from flask import Flask, request, render_template, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, g, flash
 import sqlite3
 import os
-import math
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
+app.secret_key = os.environ.get("FLASK_SECRET", "replace-this-in-prod")
 
-DATABASE = '/nfs/demo.db'
-PER_PAGE_DEFAULT = 10
+DB_PATH = 'data/warehouse.db'  # KEEP THIS PATH (do not change)
 
 def get_db():
-    db = sqlite3.connect(DATABASE)
-    db.row_factory = sqlite3.Row
+    db = getattr(g, '_database', None)
+    if db is None:
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+        db = g._database = sqlite3.connect(DB_PATH)
+        db.row_factory = sqlite3.Row
     return db
 
 def init_db():
-    with app.app_context():
-        db = get_db()
-        db.execute('''
-            CREATE TABLE IF NOT EXISTS contacts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                phone TEXT NOT NULL
-            );
-        ''')
-        db.commit()
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS parts (
+            part_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            part_name TEXT NOT NULL,
+            quantity INTEGER NOT NULL DEFAULT 0,
+            location TEXT
+        );
+    """)
+    db.commit()
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
         db.close()
 
-@app.route('/', methods=['GET', 'POST'])
+@app.before_first_request
+def before_first():
+    init_db()
+
+@app.route('/')
 def index():
+    db = get_db()
+    cursor = db.execute("SELECT part_id, part_name, quantity, location FROM parts ORDER BY part_id DESC")
+    parts = cursor.fetchall()
+    return render_template('index.html', parts=parts)
+
+@app.route('/add', methods=['GET', 'POST'])
+def add_part():
     if request.method == 'POST':
-        action = request.form.get('action')
+        part_name = request.form.get('part_name', '').strip()
+        quantity = request.form.get('quantity', '0').strip()
+        location = request.form.get('location', '').strip()
 
-        if action == 'delete':
-            contact_id = request.form.get('contact_id')
-            if contact_id:
-                db = get_db()
-                db.execute('DELETE FROM contacts WHERE id = ?', (contact_id,))
-                db.commit(); db.close()
-                flash('Contact deleted successfully.', 'success')
-            else:
-                flash('Missing contact id.', 'danger')
-            return redirect(url_for('index'))
+        if not part_name:
+            flash("Part name is required.", "error")
+            return redirect(url_for('add_part'))
 
-        if action == 'update':
-            contact_id = request.form.get('contact_id')
-            name = request.form.get('name')
-            phone = request.form.get('phone')
-            if contact_id and name and phone:
-                db = get_db()
-                db.execute('UPDATE contacts SET name=?, phone=? WHERE id=?', (name, phone, contact_id))
-                db.commit(); db.close()
-                flash('Contact updated.', 'success')
-            else:
-                flash('Missing fields for update.', 'danger')
-            return redirect(url_for('index'))
+        try:
+            quantity_value = int(quantity)
+            if quantity_value < 0:
+                raise ValueError
+        except ValueError:
+            flash("Quantity must be a non-negative integer.", "error")
+            return redirect(url_for('add_part'))
 
-        # default → add
-        name = request.form.get('name')
-        phone = request.form.get('phone')
-        if name and phone:
-            db = get_db()
-            db.execute('INSERT INTO contacts (name, phone) VALUES (?, ?)', (name, phone))
-            db.commit(); db.close()
-            flash('Contact added successfully.', 'success')
-        else:
-            flash('Missing name or phone number.', 'danger')
+        db = get_db()
+        db.execute(
+            "INSERT INTO parts (part_name, quantity, location) VALUES (?, ?, ?)",
+            (part_name, quantity_value, location)
+        )
+        db.commit()
+        flash(f"Added part '{part_name}'.", "success")
         return redirect(url_for('index'))
 
-    # GET: pagination
-    try:
-        page = max(int(request.args.get('page', 1)), 1)
-    except ValueError:
-        page = 1
-    try:
-        per_page = max(int(request.args.get('per', PER_PAGE_DEFAULT)), 1)
-    except ValueError:
-        per_page = PER_PAGE_DEFAULT
-    offset = (page - 1) * per_page
+    # GET
+    return render_template('add.html')
 
+@app.route('/delete/<int:part_id>', methods=['POST'])
+def delete_part(part_id):
     db = get_db()
-    total = db.execute('SELECT COUNT(*) FROM contacts').fetchone()[0]
-    contacts = db.execute(
-        'SELECT * FROM contacts ORDER BY id DESC LIMIT ? OFFSET ?',
-        (per_page, offset)
-    ).fetchall()
-    db.close()
+    cur = db.execute("SELECT part_name FROM parts WHERE part_id = ?", (part_id,))
+    row = cur.fetchone()
+    if row:
+        db.execute("DELETE FROM parts WHERE part_id = ?", (part_id,))
+        db.commit()
+        flash(f"Deleted part '{row['part_name']}'.", "success")
+    else:
+        flash("Part not found.", "error")
+    return redirect(url_for('index'))
 
-    pages = max(1, math.ceil(total / per_page))
-    has_prev = page > 1
-    has_next = page < pages
-    start_page = max(1, page - 2)
-    end_page = min(pages, page + 2)
-
-    return render_template(
-        'index.html',
-        contacts=contacts,
-        page=page, pages=pages, per_page=per_page,
-        has_prev=has_prev, has_next=has_next, total=total,
-        start_page=start_page, end_page=end_page
-    )
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    init_db()
-    app.run(debug=True, host='0.0.0.0', port=port)
+if __name__ == '__main__':
+    # For local development only. In deployments your WSGI server will call the app.
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=os.environ.get('FLASK_DEBUG', '0') == '1')
