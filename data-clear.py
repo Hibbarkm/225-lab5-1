@@ -1,20 +1,21 @@
+"""
+Clear all rows from the parts table.
+Run with: python data-clear.py
+"""
+
 import sqlite3
+import os
 
-# Database file path, ensure this matches the path used in your Flask application
-DATABASE = '/nfs/demo.db'
+DB_PATH = 'data/warehouse.db'
+if not os.path.exists(DB_PATH):
+    print(f"No DB found at {DB_PATH}. Nothing to clear.")
+    raise SystemExit(0)
 
-def connect_db():
-    """Connect to the SQLite database."""
-    return sqlite3.connect(DATABASE)
+conn = sqlite3.connect(DB_PATH)
+c = conn.cursor()
 
-def clear_test_contacts():
-    """Clear only the test contacts from the database."""
-    db = connect_db()
-    # Assuming all test contacts follow a specific naming pattern
-    db.execute("DELETE FROM contacts WHERE name LIKE 'Test Name %'")
-    db.commit()
-    print('Test contacts have been deleted from the database.')
-    db.close()
+c.execute("DELETE FROM parts")
+conn.commit()
+conn.close()
 
-if __name__ == '__main__':
-    clear_test_contacts()
+print("Cleared all parts from the database.")
