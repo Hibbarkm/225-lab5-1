@@ -1,8 +1,3 @@
-"""
-Clear all rows from the parts table.
-Run with: python data-clear.py
-"""
-
 import sqlite3
 import os
 
@@ -13,7 +8,6 @@ if not os.path.exists(DB_PATH):
 
 conn = sqlite3.connect(DB_PATH)
 c = conn.cursor()
-
 c.execute("DELETE FROM parts")
 conn.commit()
 conn.close()
