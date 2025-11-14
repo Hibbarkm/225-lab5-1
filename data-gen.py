@@ -1,9 +1,11 @@
 import sqlite3
 import os
 
-DB_PATH = 'data/warehouse.db'
+# Use the persistent NFS path
+DB_PATH = '/nfs/demo.db'
 os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
+# Sample parts to populate the database
 sample_parts = [
     ("Front Brake Rotor", 4, "Shelf A-1"),
     ("Air Filter (Sportster)", 12, "Shelf A-2"),
@@ -12,9 +14,11 @@ sample_parts = [
     ("Clutch Cable", 3, "Rack C"),
 ]
 
+# Connect to the database
 conn = sqlite3.connect(DB_PATH)
 c = conn.cursor()
 
+# Create table if it doesn't exist
 c.execute("""
 CREATE TABLE IF NOT EXISTS parts (
     part_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,6 +28,7 @@ CREATE TABLE IF NOT EXISTS parts (
 )
 """)
 
+# Insert sample parts
 c.executemany("INSERT INTO parts (part_name, quantity, location) VALUES (?, ?, ?)", sample_parts)
 conn.commit()
 conn.close()
