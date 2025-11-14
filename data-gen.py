@@ -1,22 +1,37 @@
+"""
+Populate data/warehouse.db with a handful of sample motorcycle parts.
+Run with: python data-gen.py
+"""
+
 import sqlite3
 import os
 
-DATABASE = '/nfs/demo.db'
+DB_PATH = 'data/warehouse.db'
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
-def connect_db():
-    """Connect to the SQLite database."""
-    return sqlite3.connect(DATABASE)
+sample_parts = [
+    ("Front Brake Rotor", 4, "Shelf A-1"),
+    ("Air Filter (Sportster)", 12, "Shelf A-2"),
+    ("Battery Cable", 6, "Bin 5"),
+    ("Oil Filter", 25, "Shelf B-1"),
+    ("Clutch Cable", 3, "Rack C"),
+]
 
-def generate_test_data(num_contacts):
-    """Generate test data for the contacts table."""
-    db = connect_db()
-    for i in range(num_contacts):
-        name = f'Test Name {i}'
-        phone = f'123-456-789{i}'
-        db.execute('INSERT INTO contacts (name, phone) VALUES (?, ?)', (name, phone))
-    db.commit()
-    print(f'{num_contacts} test contacts added to the database.')
-    db.close()
+conn = sqlite3.connect(DB_PATH)
+c = conn.cursor()
 
-if __name__ == '__main__':
-    generate_test_data(10)  # Generate 10 test contacts.
+c.execute("""
+CREATE TABLE IF NOT EXISTS parts (
+    part_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    part_name TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0,
+    location TEXT
+)
+""")
+
+# Clear existing sample rows (but keep DB intact)
+c.executemany("INSERT INTO parts (part_name, quantity, location) VALUES (?, ?, ?)", sample_parts)
+conn.commit()
+conn.close()
+
+print(f"Inserted {len(sample_parts)} sample parts into {DB_PATH}")
