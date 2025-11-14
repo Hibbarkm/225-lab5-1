@@ -1,27 +1,51 @@
-body { padding-top: 2rem; font-family: 'Inter', 'Segoe UI', Roboto, sans-serif; }
-.card { border-radius: 0.8rem; border: 1px solid #D7D7D7; }
+/* Simple clean styling with orange / black / grey / white palette */
 
-.btn-primary { background-color: #B00B1E !important; border-color: #B00B1E !important; }
-.btn-primary:hover { background-color: #8E0918 !important; border-color: #8E0918 !important; }
-.btn-outline-secondary { color: #B00B1E !important; border-color: #B00B1E !important; }
-.btn-outline-secondary:hover { background-color: #B00B1E !important; color: #fff !important; }
-
-.table thead th { background: var(--bs-body-bg); border-bottom: 2px solid #B00B1E !important; }
-.table-striped tbody tr:nth-of-type(odd) { background-color: rgba(176, 11, 30, 0.04); }
-[data-bs-theme="dark"] .card { border: 1px solid #333; }
-[data-bs-theme="dark"] .table-striped tbody tr:nth-of-type(odd) { background-color: rgba(176, 11, 30, 0.2); }
-
-/* Miami branding */
-.miami-title {
-  font-family: 'Oswald', sans-serif; font-weight: 600; letter-spacing: 1px;
-  font-size: 1.9rem; line-height: 1.1; color: #B00B1E; text-transform: uppercase;
+/* Variables */
+:root{
+  --orange: #ff6600;
+  --black: #111111;
+  --light-grey: #f4f4f6;
+  --mid-grey: #9aa0a6;
+  --white: #ffffff;
+  --container-width: 980px;
+  --radius: 8px;
 }
-.miami-subtitle { font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--bs-secondary-color); }
-h1, h2, h3, .h1, .h2, .h3 { font-family: 'Oswald', sans-serif; font-weight: 500; }
 
-/* Pagination */
-.page-link { color: #B00B1E !important; border-color: #D7D7D7 !important; }
-.page-link:hover { background-color: rgba(176, 11, 30, 0.1) !important; border-color: #B00B1E !important; color: #8E0918 !important; }
-.page-item.active .page-link { background-color: #B00B1E !important; border-color: #B00B1E !important; color: #fff !important; }
-[data-bs-theme="dark"] .page-link { color: #FFCDD2 !important; }
-[data-bs-theme="dark"] .page-item.active .page-link { background-color: #B00B1E !important; border-color: #B00B1E !important; color: #fff !important; }
+/* Reset-ish */
+*{box-sizing:border-box;font-family:Inter, Roboto, "Segoe UI", Arial, sans-serif}
+html,body{height:100%;margin:0;background:var(--light-grey);color:var(--black)}
+a{color:var(--orange);text-decoration:none}
+
+/* Layout */
+.container{max-width:var(--container-width);margin:0 auto;padding:18px}
+
+/* Header */
+.site-header{background:linear-gradient(90deg,var(--black),#222);color:var(--white);padding:18px 0;margin-bottom:18px}
+.site-header .container{display:flex;align-items:center;justify-content:space-between}
+.site-header h1{margin:0;font-size:20px}
+.btn-primary, .btn-ghost, .btn-danger{display:inline-block;padding:8px 14px;border-radius:6px;border:0;cursor:pointer}
+.btn-primary{background:var(--orange);color:var(--white);font-weight:600}
+.btn-ghost{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.08)}
+.btn-danger{background:#cc3a1a;color:var(--white);font-weight:600}
+
+/* Table */
+.parts-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:8px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,0.06)}
+.parts-table thead{background:#fafafa}
+.parts-table th, .parts-table td{padding:12px 14px;text-align:left;border-bottom:1px solid #f1f1f1}
+.parts-table tbody tr:nth-child(even){background:#fff}
+.parts-table .empty{text-align:center;padding:40px;color:var(--mid-grey)}
+
+/* Forms */
+.form-section{background:var(--white);padding:18px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,0.04)}
+label{display:block;margin-top:10px;margin-bottom:6px;font-weight:600;color:#333}
+input[type="text"], input[type="number"]{width:100%;padding:10px;border-radius:6px;border:1px solid #e6e6e6}
+.form-actions{margin-top:14px;display:flex;gap:8px;align-items:center}
+
+/* Flash messages */
+.flash-list{margin-bottom:12px}
+.flash{padding:10px 12px;border-radius:6px;margin-bottom:8px}
+.flash.success{background:#eaffef;color:#0a9a3b}
+.flash.error{background:#fff2f0;color:#8a1f11}
+
+/* Footer */
+.site-footer{padding:12px 0;text-align:center;color:var(--mid-grey);margin-top:18px}
