@@ -10,11 +10,17 @@ COPY . .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements2.txt
 
-# Install system dependencies for Firefox
+# Install system dependencies for Firefox + Selenium
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
     firefox-esr \
+    xvfb \
+    dbus \
+    libgtk-3-0 \
+    libdbus-glib-1-2 \
+    libasound2 \
+    libxt6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install GeckoDriver
@@ -28,5 +34,6 @@ RUN GECKODRIVER_VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriv
 # Set display port
 ENV DISPLAY=:99
 
-# Run the Selenium test
-CMD ["python3", "./test_html_elements.py"]
+# Default command: run UI tests with Xvfb
+CMD ["xvfb-run", "-a", "python3", "test_ui.py"]
+
