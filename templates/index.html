@@ -1,70 +1,68 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Motorcycle Parts Inventory</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="container">
-        <h1>Motorcycle Parts Inventory</h1>
-        <a class="btn-primary" href="{{ url_for('add_part') }}">Add Part</a>
-      </div>
-    </header>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motorcycle Parts Inventory</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <h1>Motorcycle Parts Inventory</h1>
+    <a class="btn-primary" href="{{ url_for('add_part') }}">Add Part</a>
+  </div>
+</header>
 
-    <main class="container">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <div class="flash-list">
-            {% for category, msg in messages %}
-              <div class="flash {{ category }}">{{ msg }}</div>
-            {% endfor %}
-          </div>
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-list">
+        {% for category, msg in messages %}
+          <div class="flash {{ category }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <section>
+    <table class="parts-table" id="parts-table">
+      <thead>
+        <tr>
+          <th>Part ID</th>
+          <th>Part Name</th>
+          <th>Quantity</th>
+          <th>Location</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if parts %}
+          {% for p in parts %}
+          <tr data-part-id="{{ p['part_id'] }}">
+            <td>{{ p['part_id'] }}</td>
+            <td>{{ p['part_name'] }}</td>
+            <td>{{ p['quantity'] }}</td>
+            <td>{{ p['location'] or '' }}</td>
+            <td>
+              <form method="post" action="{{ url_for('delete_part', part_id=p['part_id']) }}">
+                <button class="btn-danger" type="submit" onclick="return confirm('Delete part {{ p['part_name'] }}?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="5" class="empty">No parts in inventory. Click "Add Part" to create entries.</td></tr>
         {% endif %}
-      {% endwith %}
+      </tbody>
+    </table>
+  </section>
+</main>
 
-      <section>
-        <table class="parts-table" id="parts-table">
-          <thead>
-            <tr>
-              <th>Part ID</th>
-              <th>Part Name</th>
-              <th>Quantity</th>
-              <th>Location</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if parts %}
-              {% for p in parts %}
-                <tr data-part-id="{{ p['part_id'] }}">
-                  <td class="col-id">{{ p['part_id'] }}</td>
-                  <td class="col-name">{{ p['part_name'] }}</td>
-                  <td class="col-qty">{{ p['quantity'] }}</td>
-                  <td class="col-loc">{{ p['location'] or '' }}</td>
-                  <td class="col-actions">
-                    <form method="post" action="{{ url_for('delete_part', part_id=p['part_id']) }}" style="display:inline;">
-                      <button class="btn-danger" type="submit" onclick="return confirm('Delete part {{ p['part_name'] }}?')">Delete</button>
-                    </form>
-                  </td>
-                </tr>
-              {% endfor %}
-            {% else %}
-              <tr>
-                <td colspan="5" class="empty">No parts in inventory. Click "Add Part" to create entries.</td>
-              </tr>
-            {% endif %}
-          </tbody>
-        </table>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <div class="container">
-        <small>Database path: <code>{{ config.get('DB_PATH', 'data/warehouse.db') }}</code></small>
-      </div>
-    </footer>
-  </body>
+<footer class="site-footer">
+  <div class="container">
+    <small>Database path: <code>{{ config.get('DB_PATH', 'data/warehouse.db') }}</code></small>
+  </div>
+</footer>
+</body>
 </html>
