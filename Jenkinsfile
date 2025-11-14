@@ -3,20 +3,21 @@ pipeline {
 
     environment {
         DOCKER_CREDENTIALS_ID = 'roseaw-dockerhub'
-        DOCKER_IMAGE = 'cithit/hibbarkm'       // <----- change this to your MiamiID!
+        DOCKER_IMAGE = 'cithit/hibbarkm'       
         IMAGE_TAG = "build-${BUILD_NUMBER}"
-        GITHUB_URL = 'https://github.com/Hibbarkm/225-lab5-1.git'  // <----- change to your repo
-        KUBECONFIG = credentials('hibbarkm-225')   // <----- change to your k8s credentials
-        POD_LABEL = 'app=flask-dev'   // <----- match your deployment labels
-        CONTAINER_NAME = 'flask-dev'  // <----- match container name in deployment
-        BASE_URL = 'http://flask-dev-service:5000'  // override for acceptance tests
+        GITHUB_URL = 'https://github.com/Hibbarkm/225-lab5-1.git'
+        KUBECONFIG = credentials('hibbarkm-225')
+        POD_LABEL = 'app=flask-dev'
+        CONTAINER_NAME = 'flask-dev'
+        BASE_URL = 'http://flask-dev-service:5000'
     }
 
     stages {
         stage('Code Checkout') {
             steps {
                 cleanWs()
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']],
+                checkout([$class: 'GitSCM', 
+                          branches: [[name: '*/main']],
                           userRemoteConfigs: [[url: "${GITHUB_URL}"]]])
             }
         }
@@ -65,7 +66,10 @@ pipeline {
         stage('Reset DB After Security Checks') {
             steps {
                 script {
-                    def appPod = sh(script: "kubectl get pods -l ${POD_LABEL} -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
+                    def appPod = sh(script: 
+                        "kubectl get pods -l ${POD_LABEL} -o jsonpath='{.items[0].metadata.name}'",
+                        returnStdout: true).trim()
+
                     sh """
                     kubectl exec ${appPod} -c ${CONTAINER_NAME} -- python3 - <<'PY'
 import sqlite3
@@ -84,7 +88,10 @@ PY
         stage('Generate Test Data') {
             steps {
                 script {
-                    def appPod = sh(script: "kubectl get pods -l ${POD_LABEL} -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
+                    def appPod = sh(script:
+                        "kubectl get pods -l ${POD_LABEL} -o jsonpath='{.items[0].metadata.name}'",
+                        returnStdout: true).trim()
+
                     sh "sleep 15"
                     sh "kubectl exec ${appPod} -c ${CONTAINER_NAME} -- python3 data-gen.py"
                 }
@@ -94,11 +101,20 @@ PY
         stage('Run Acceptance Tests') {
             steps {
                 script {
+
+                    // Clean old container safely
                     sh 'docker stop qa-tests || true'
                     sh 'docker rm qa-tests || true'
+
+                    // Build the Firefox/Selenium Test Image
                     sh 'docker build -t qa-tests -f Dockerfile.test .'
+
+                    // Run tests inside Xvfb-enabled container
                     sh """
-                    docker run -e BASE_URL=${BASE_URL} qa-tests
+                        docker run \
+                        -e BASE_URL=${BASE_URL} \
+                        --name qa-tests \
+                        qa-tests
                     """
                 }
             }
@@ -107,7 +123,10 @@ PY
         stage('Remove Test Data') {
             steps {
                 script {
-                    def appPod = sh(script: "kubectl get pods -l ${POD_LABEL} -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
+                    def appPod = sh(script:
+                        "kubectl get pods -l ${POD_LABEL} -o jsonpath='{.items[0].metadata.name}'",
+                        returnStdout: true).trim()
+
                     sh "kubectl exec ${appPod} -c ${CONTAINER_NAME} -- python3 data-clear.py"
                 }
             }
