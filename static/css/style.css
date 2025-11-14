@@ -17,20 +17,45 @@ a{color:var(--orange);text-decoration:none}
 .site-header{background:linear-gradient(90deg,var(--black),#222);color:var(--white);padding:18px 0;margin-bottom:18px}
 .site-header .container{display:flex;align-items:center;justify-content:space-between}
 .site-header h1{margin:0;font-size:20px}
+
 .btn-primary, .btn-ghost, .btn-danger{display:inline-block;padding:8px 14px;border-radius:6px;border:0;cursor:pointer}
 .btn-primary{background:var(--orange);color:var(--white);font-weight:600}
 .btn-ghost{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.08)}
 .btn-danger{background:#cc3a1a;color:var(--white);font-weight:600}
 
-.parts-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:8px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,0.06)}
+.parts-table{
+  width:100%;
+  border-collapse:collapse;
+  background:var(--white);
+  border-radius:8px;
+  overflow:hidden;
+  box-shadow:0 4px 14px rgba(0,0,0,0.06)
+}
 .parts-table thead{background:#fafafa}
 .parts-table th, .parts-table td{padding:12px 14px;text-align:left;border-bottom:1px solid #f1f1f1}
-.parts-table tbody tr:nth-child(even){background:#fff}
+.parts-table tbody tr:nth-child(even){background:#f9f9f9} /* improved readability */
 .parts-table .empty{text-align:center;padding:40px;color:var(--mid-grey)}
 
-.form-section{background:var(--white);padding:18px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,0.04)}
+.form-section{
+  background:var(--white);
+  padding:18px;
+  border-radius:8px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.04)
+}
 label{display:block;margin-top:10px;margin-bottom:6px;font-weight:600;color:#333}
-input[type="text"], input[type="number"]{width:100%;padding:10px;border-radius:6px;border:1px solid #e6e6e6}
+input[type="text"], input[type="number"]{
+  width:100%;
+  padding:10px;
+  border-radius:6px;
+  border:1px solid #e6e6e6;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type="text"]:focus, input[type="number"]:focus{
+  border-color: var(--orange);
+  box-shadow: 0 0 4px rgba(255,102,0,0.4);
+  outline: none;
+}
+
 .form-actions{margin-top:14px;display:flex;gap:8px;align-items:center}
 
 .flash-list{margin-bottom:12px}
