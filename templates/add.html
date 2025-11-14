@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Add Part — Motorcycle Inventory</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1>Add Part</h1>
+        <a class="btn-ghost" href="{{ url_for('index') }}">Back to Inventory</a>
+      </div>
+    </header>
+
+    <main class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-list">
+            {% for category, msg in messages %}
+              <div class="flash {{ category }}">{{ msg }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <section class="form-section">
+        <form method="post" action="{{ url_for('add_part') }}" id="add-part-form">
+          <label for="part_name">Part Name <span class="required">*</span></label>
+          <input id="part_name" name="part_name" type="text" maxlength="200" required>
+
+          <label for="quantity">Quantity</label>
+          <input id="quantity" name="quantity" type="number" min="0" value="0">
+
+          <label for="location">Location</label>
+          <input id="location" name="location" type="text" maxlength="100">
+
+          <div class="form-actions">
+            <button class="btn-primary" type="submit">Add Part</button>
+            <a class="btn-ghost" href="{{ url_for('index') }}">Cancel</a>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <small>Motorcycle parts inventory</small>
+      </div>
+    </footer>
+  </body>
+</html>
