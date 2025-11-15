@@ -36,7 +36,7 @@ def add_part():
     flash(f"Added part '{part_name}'", "success")
     return redirect('/')
 
-@app.route('/delete/<int:part_id>', methods=['POST', 'GET'])
+@app.route('/delete/<int:part_id>', methods=['POST'])
 def delete_part(part_id):
     conn = get_db()
     cur = conn.cursor()
