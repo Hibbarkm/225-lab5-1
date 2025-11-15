@@ -10,11 +10,12 @@
 <header class="site-header">
   <div class="container">
     <h1>Motorcycle Parts Inventory</h1>
-    <a class="btn-primary" href="{{ url_for('add_part') }}">Add Part</a>
   </div>
 </header>
 
 <main class="container">
+
+  <!-- Flash messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <div class="flash-list">
@@ -25,7 +26,29 @@
     {% endif %}
   {% endwith %}
 
-  <section>
+  <!-- Add Part Form -->
+  <section class="add-part-section">
+    <h2>Add New Part</h2>
+    <form method="post" action="{{ url_for('add_part') }}">
+      <div>
+        <label for="part_name">Part Name:</label>
+        <input type="text" id="part_name" name="part_name" required>
+      </div>
+      <div>
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" min="0" value="0">
+      </div>
+      <div>
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location">
+      </div>
+      <button type="submit" class="btn-primary">Add Part</button>
+    </form>
+  </section>
+
+  <!-- Parts Table -->
+  <section class="parts-table-section">
+    <h2>Parts Inventory</h2>
     <table class="parts-table" id="parts-table">
       <thead>
         <tr>
@@ -45,7 +68,7 @@
             <td>{{ p[2] }}</td>
             <td>{{ p[3] or '' }}</td>
             <td>
-              <!-- FIXED: Use part_id to match Flask route -->
+              <!-- Delete button -->
               <form method="post" action="{{ url_for('delete_part', part_id=p[0]) }}">
                 <button class="btn-danger" type="submit" onclick="return confirm('Delete part {{ p[1] }}?')">Delete</button>
               </form>
@@ -53,11 +76,14 @@
           </tr>
           {% endfor %}
         {% else %}
-          <tr><td colspan="5" class="empty">No parts in inventory. Click "Add Part" to create entries.</td></tr>
+          <tr>
+            <td colspan="5" class="empty">No parts in inventory. Add a part above to start.</td>
+          </tr>
         {% endif %}
       </tbody>
     </table>
   </section>
+
 </main>
 
 <footer class="site-footer">
