@@ -4,7 +4,76 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Motorcycle Parts Inventory</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<style>
+:root{
+  --orange: #ff6600;
+  --black: #111111;
+  --light-grey: #f4f4f6;
+  --mid-grey: #9aa0a6;
+  --white: #ffffff;
+  --container-width: 980px;
+  --radius: 8px;
+}
+
+*{box-sizing:border-box;font-family:Inter, Roboto, "Segoe UI", Arial, sans-serif}
+html,body{height:100%;margin:0;background:var(--light-grey);color:var(--black)}
+a{color:var(--orange);text-decoration:none}
+
+.container{max-width:var(--container-width);margin:0 auto;padding:18px}
+
+.site-header{background:linear-gradient(90deg,var(--black),#222);color:var(--white);padding:18px 0;margin-bottom:18px}
+.site-header .container{display:flex;align-items:center;justify-content:space-between}
+.site-header h1{margin:0;font-size:20px}
+
+.btn-primary, .btn-ghost, .btn-danger{display:inline-block;padding:8px 14px;border-radius:6px;border:0;cursor:pointer}
+.btn-primary{background:var(--orange);color:var(--white);font-weight:600}
+.btn-ghost{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.08)}
+.btn-danger{background:#cc3a1a;color:var(--white);font-weight:600}
+
+.parts-table{
+  width:100%;
+  border-collapse:collapse;
+  background:var(--white);
+  border-radius:8px;
+  overflow:hidden;
+  box-shadow:0 4px 14px rgba(0,0,0,0.06)
+}
+.parts-table thead{background:#fafafa}
+.parts-table th, .parts-table td{padding:12px 14px;text-align:left;border-bottom:1px solid #f1f1f1}
+.parts-table tbody tr:nth-child(even){background:#f9f9f9}
+.parts-table .empty{text-align:center;padding:40px;color:var(--mid-grey)}
+
+.form-section{
+  background:var(--white);
+  padding:18px;
+  border-radius:8px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.04)
+}
+label{display:block;margin-top:10px;margin-bottom:6px;font-weight:600;color:#333}
+input[type="text"], input[type="number"]{
+  width:100%;
+  padding:10px;
+  border-radius:6px;
+  border:1px solid #e6e6e6;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type="text"]:focus, input[type="number"]:focus{
+  border-color: var(--orange);
+  box-shadow: 0 0 4px rgba(255,102,0,0.4);
+  outline: none;
+}
+
+.form-actions{margin-top:14px;display:flex;gap:8px;align-items:center}
+
+.flash-list{margin-bottom:12px}
+.flash{padding:10px 12px;border-radius:6px;margin-bottom:8px}
+.flash.success{background:#eaffef;color:#0a9a3b}
+.flash.error{background:#fff2f0;color:#8a1f11}
+
+.site-footer{padding:12px 0;text-align:center;color:var(--mid-grey);margin-top:18px}
+</style>
+
 </head>
 <body>
 
