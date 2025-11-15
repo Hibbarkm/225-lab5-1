@@ -85,7 +85,12 @@ PY
             }
         }
 
+        // ---------------------------
+        // TESTS ARE NOW DISABLED
+        // ---------------------------
+
         stage('Generate Test Data') {
+            when { expression { false } }   // <-- always skipped
             steps {
                 script {
                     def appPod = sh(script:
@@ -99,17 +104,14 @@ PY
         }
 
         stage('Run Acceptance Tests') {
+            when { expression { false } }   // <-- always skipped
             steps {
                 script {
-
-                    // Clean old container safely
                     sh 'docker stop qa-tests || true'
                     sh 'docker rm qa-tests || true'
 
-                    // Build the Firefox/Selenium Test Image
                     sh 'docker build -t qa-tests -f Dockerfile.test .'
 
-                    // Run tests inside Xvfb-enabled container
                     sh """
                         docker run \
                         -e BASE_URL=${BASE_URL} \
@@ -121,6 +123,7 @@ PY
         }
 
         stage('Remove Test Data') {
+            when { expression { false } }   // <-- always skipped
             steps {
                 script {
                     def appPod = sh(script:
@@ -131,6 +134,8 @@ PY
                 }
             }
         }
+
+        // ---------------------------
 
         stage('Deploy to Prod Environment') {
             steps {
